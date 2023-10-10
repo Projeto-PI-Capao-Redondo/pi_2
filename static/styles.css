@@ -1,0 +1,48 @@
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital@1&family=Poppins&display=swap');
+
+body{
+    font-family: 'Poppins', 'sans-serif';
+    background: #ececec;
+}
+
+/*---------------------------------------------------------entrar------------------------------------------------------------------*/
+
+/*-------Login container--------*/
+
+.box-area{
+    width: 930px;
+}
+
+/*-------Right box--------*/
+
+.right-box{
+    padding: 40px 30px 40px 40px;
+}
+
+
+/*-------Custom Placeholder--------*/
+::placeholder{
+    font-size: 16px;
+}
+
+/*---------------------------------------------------------fim entrar------------------------------------------------------------------*/
+
+
+/*---------For small screens ------------*/
+
+@media only screen and (max-width: 768px){
+
+    .box-area{
+        margin: 0 10px ;
+    }
+
+    .left-box{
+        height: 0;
+        overflow: hidden;
+    
+    }
+
+    .right-box{
+        padding: 20px;
+    }
+}

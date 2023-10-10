@@ -8,6 +8,7 @@ from starlette.templating import Jinja2Templates
 
 from .conexao import get_session
 from .schemas import CadastrarLoja, ConsultaLojas
+from .models import Loja
 
 app = FastAPI()
 templates = Jinja2Templates(directory='templates')
@@ -23,38 +24,43 @@ async def index(request: Request):
 
 @app.get('/lojas', response_model=ConsultaLojas)
 async def consultar_lojas(
+    request: Request,
     session: Session = Depends(get_session),
-    skip: int = 0,
-    limit: int = 50,
-    ConsultaLojas: ConsultaLojas = Depends(),
 ):
-    lojas = session.scalar(
-        select(ConsultaLojas).offset(skip).limit(limit)
-    ).all()
+    lojas = (
+        session.query(Loja)
+        .all()
+    )
     now = datetime.now()
-    return RedirectResponse('lojas.html', active='lojas', lojas=lojas, now=now)
+    return templates.TemplateResponse(
+        'lojas.html',
+        {'request': request, 'active': 'lojas', 'now': now, 'lojas': lojas},
+    )
 
 
-@app.route('/cadastro')
+@app.post('/lojas/cadastrar_loja', response_class=HTMLResponse)
 async def cadastrar_loja(
+    request: Request,
     session: Session = Depends(get_session),
-    nome_loja: str = Form(),
-    cep: str = Form(),
-    endereco: str = Form(),
-    numero: int = Form(),
-    complemento: str = Form(),
-    bairro: str = Form(),
-    cidade: str = Form(),
-    telefone: str = Form(),
-    horario_funcionamento: str = Form(),
-    descricao: str = Form(),
-    imagem: str = Form(),
+    nome_loja: str = Form(...),
+    cep: str = Form(...),
+    endereco: str = Form(...),
+    numero: int = Form(...),
+    complemento: str = Form(...),
+    bairro: str = Form(...),
+    cidade: str = Form(...),
+    telefone: str = Form(...),
+    horario_funcionamento: str = Form(...),
+    descricao: str = Form(...),
+    imagem: str = Form(...),
 ):
     now = datetime.now()
 
-    validar_loja = session.scalar(
-        select(CadastrarLoja).where(CadastrarLoja.nome_loja == nome_loja)
-    ).first()
+    validar_loja = (
+        session.query(CadastrarLoja)
+        .filter(CadastrarLoja.nome_loja == nome_loja)
+        .first()
+    )
 
     if validar_loja:
         raise HTTPException(
@@ -76,6 +82,21 @@ async def cadastrar_loja(
         )
         session.add(loja)
         session.commit()
-        return RedirectResponse(url='/lojas', status_code=302)
 
-    return RedirectResponse(url='/lojas', status_code=302, now=now)
+        return templates.TemplateResponse(
+            'cadastrar_loja.html',
+            {'request': request, 'active': 'cadastrar_loja', 'now': now, 'form': Form},
+        )
+
+
+
+@app.post('/lojas/{id}', response_class=HTMLResponse)
+async def alterar_dados_loja(
+    request: Request,
+    id: int,
+    session: Session = Depends(get_session),
+):
+    now = datetime.now()
+    loja = session.scalar(
+        select(CadastrarLoja).where(CadastrarLoja.id == id)
+    ).first()

@@ -1,11 +1,12 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
+from sqlalchemy.orm import sessionmaker
 
-from backend.settings import Settings
+from .settings import Settings
 
 engine = create_engine(Settings().DATABASE_URL_HEROKU)
 
 
-def get_session():
-    with Session(engine) as session:
-        yield session
+def get_session() -> Session:
+    session = sessionmaker(bind=engine)
+    return session()

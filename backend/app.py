@@ -51,7 +51,7 @@ async def cadastrar(request: Request):
         {'request': request, 'active': 'cadastrar_usuario', 'now': now},
     )
 
-@app.post('/lojas/cadastrar_loja', response_class=HTMLResponse)
+@app.get('/lojas/cadastrar_loja', response_class=HTMLResponse)
 async def cadastrar_loja(
     request: Request,
     session: Session = Depends(get_session),
@@ -118,5 +118,11 @@ async def alterar_dados_loja(
         select(CadastrarLoja).where(CadastrarLoja.id == id)
     ).first()
 
-
+@app.get('/roteiro', response_class=HTMLResponse)
+async def roteiro(request: Request):
+    now = datetime.now()
+    return templates.TemplateResponse(
+        'roteiro.html', 
+        {'request': request, 'active': 'roteiro', 'now': now}
+    )
 

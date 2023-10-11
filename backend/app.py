@@ -34,12 +34,12 @@ async def consultar_lojas(
         {'request': request, 'active': 'lojas', 'now': now, 'lojas': lojas},
     )
 
+
 @app.get('/entrar', response_class=HTMLResponse)
 async def login(request: Request):
     now = datetime.now()
     return templates.TemplateResponse(
-        'entrar.html', 
-        {'request': request, 'active': 'entrar', 'now': now}
+        'entrar.html', {'request': request, 'active': 'entrar', 'now': now}
     )
 
 
@@ -50,6 +50,7 @@ async def cadastrar(request: Request):
         'cadastrar_usuario.html',
         {'request': request, 'active': 'cadastrar_usuario', 'now': now},
     )
+
 
 @app.get('/lojas/cadastrar_loja', response_class=HTMLResponse)
 async def cadastrar_loja(
@@ -118,11 +119,10 @@ async def alterar_dados_loja(
         select(CadastrarLoja).where(CadastrarLoja.id == id)
     ).first()
 
+
 @app.get('/roteiro', response_class=HTMLResponse)
 async def roteiro(request: Request):
     now = datetime.now()
     return templates.TemplateResponse(
-        'roteiro.html', 
-        {'request': request, 'active': 'roteiro', 'now': now}
+        'roteiro.html', {'request': request, 'active': 'roteiro', 'now': now}
     )
-

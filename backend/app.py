@@ -2,6 +2,7 @@ from datetime import datetime
 
 from fastapi import Depends, FastAPI, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from starlette.templating import Jinja2Templates
@@ -12,7 +13,7 @@ from .schemas import CadastrarLoja, ConsultaLojas
 
 app = FastAPI()
 templates = Jinja2Templates(directory='templates')
-
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get('/', response_class=HTMLResponse)
 async def index(request: Request):
@@ -38,6 +39,7 @@ async def consultar_lojas(
 @app.get('/entrar', response_class=HTMLResponse)
 async def login(request: Request):
     now = datetime.now()
+
     return templates.TemplateResponse(
         'entrar.html', {'request': request, 'active': 'entrar', 'now': now}
     )
@@ -97,7 +99,7 @@ async def cadastrar_loja(
         session.add(loja)
         session.commit()
 
-        return templates.TemplateResponse(
+    return templates.TemplateResponse(
             'cadastrar_loja.html',
             {
                 'request': request,
@@ -126,3 +128,6 @@ async def roteiro(request: Request):
     return templates.TemplateResponse(
         'roteiro.html', {'request': request, 'active': 'roteiro', 'now': now}
     )
+
+
+# Inserir deletar_loja

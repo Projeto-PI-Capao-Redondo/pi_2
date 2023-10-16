@@ -6,7 +6,7 @@ authors = ["Igor Esposito <sposigor@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.10"
 fastapi = "^0.103.1"
 passlib = "^1.7.4"
 alembic = "^1.12.0"

@@ -30,4 +30,4 @@ class Usuario(Base):
     nome: Mapped[str]
     email: Mapped[str]
     senha: Mapped[str]
-    tipo_usuario: Mapped[str]
+    tipo_usuario: Mapped[str]= mapped_column(nullable=True)

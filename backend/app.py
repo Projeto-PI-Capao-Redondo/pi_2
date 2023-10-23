@@ -7,9 +7,10 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 from starlette.templating import Jinja2Templates
 
+from . import models
 from .conexao import get_session
-from .models import Loja
-from .schemas import CadastrarLoja, ConsultaLojas
+from .models import Loja, Usuario
+from .schemas import CadastrarLoja, ConsultaLojas, UsuarioSchema, UsuarioPublico
 
 app = FastAPI()
 templates = Jinja2Templates(directory='templates')
@@ -131,3 +132,14 @@ async def roteiro(request: Request):
 
 
 # Inserir deletar_loja
+
+
+
+# Método para criar usuário 
+@app.post('/testecriaruser', response_model= UsuarioPublico)
+async def testecriaruser(request: UsuarioSchema, db: Session = Depends(get_session)):
+    novo_usuario = models.Usuario(nome = request.usuario, email = request.email, senha = request.senha)
+    db.add(novo_usuario)
+    db.commit()
+    db.refresh(novo_usuario)
+    return novo_usuario

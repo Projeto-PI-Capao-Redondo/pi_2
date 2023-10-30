@@ -1,0 +1,19 @@
+name: Deploy do Projeto Integrado - 2 - HEROKU
+
+on:
+  push:
+    branches:
+      - prd
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: akhileshns/heroku-deploy@v3.12.13
+        with:
+          heroku_api_key: ${{secrets.HEROKU_API_KEY}}
+          heroku_app_name: "projeto-pi"
+          heroku_email: "sposigor@gmail.com"
+        env:
+          DATABASE_URL_HEROKU: ${{ secrets.DATABASE_URL_HEROKU }}

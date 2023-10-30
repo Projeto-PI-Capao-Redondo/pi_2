@@ -108,22 +108,11 @@ async def excluir_loja(id: int, session: Session = Depends(get_session)):
 
 
 @app.get('/entrar', response_class=HTMLResponse)
-async def login(request: Request,
-    email: str = Form(...),
-    senha: str = Form(...),
+async def login(
+    request: Request,
     session: Session = Depends(get_session),
 ):
     now = datetime.now()
-    usuario = session.query(Usuario).filter(Usuario.email == email, Usuario.senha == senha).first()
-
-    if usuario is not None:
-        return templates.TemplateResponse(
-            'index.html', {'request': request, 'usuario': usuario}
-        )
-    else:
-
-        raise HTTPException(status_code=400, detail="Credenciais inválidas")
-
     return templates.TemplateResponse(
         'entrar.html', {'request': request, 'active': 'entrar', 'now': now}
     )
@@ -138,19 +127,15 @@ async def cadastrar(request: Request):
     )
 
 
-# Método para criar usuário
 @app.post('/cadastrar_usuario')
-async def testecriaruser(session: Session = Depends(get_session),
+async def testecriaruser(
+    session: Session = Depends(get_session),
     nome: str = Form(...),
     email: str = Form(...),
     senha: str = Form(...),
 ):
     try:
-        novo_usuario = Usuario(
-            nome = nome,
-            email = email,
-            senha = senha
-        )
+        novo_usuario = Usuario(nome=nome, email=email, senha=senha)
         session.add(novo_usuario)
         session.commit()
         return RedirectResponse(url='/entrar', status_code=303)

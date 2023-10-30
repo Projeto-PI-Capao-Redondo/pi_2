@@ -14,9 +14,9 @@
           <select class="form-control" id="lojas">
             <option value="">Selecione uma loja</option>
             {% for loja in lojas %}
-            <option value="{{ loja[0] }}">{{ loja[1] }}</option>
+            <option value="{{ loja.nome_loja }}">{{ loja.nome_loja }}</option>
             {% endfor %}
-          </select>
+          </select>         
         </div>
       </div>
     </div>
@@ -47,7 +47,6 @@
               <th scope="col">Loja</th>
               <th scope="col">Horário de Início</th>
               <th scope="col">Horário de Fim</th>
-              <th scope="col"></th>
             </tr>
           </thead>
           <tbody id="lista">
@@ -57,7 +56,7 @@
     </div>
     <div class="row mt-4">
       <div class="col-md-12">
-        <button type="button" class="btn btn-primary" onclick="salvarHTML()">Salvar HTML</button>
+        <button type="button" class="btn btn-primary" onclick="salvarHTML()" id="btn_salvar_html">Salvar HTML</button>
       </div>
     </div>
   </div>
@@ -112,27 +111,48 @@
       });
 
       function salvarHTML() {
-        var html = '<html><head><title>Horários de Funcionamento</title></head><body>' + $('#lista').html() + '</body></html>';
+    const conteudo = `
+        <div id="order-form-container" class="container p-6 my-md-4 px-md-0">
+            <h1>Roteiro de Lojas</h1>
+            <br>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Loja</th>
+                        <th>Horário de Início</th>
+                        <th>Horário de Fim</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${lista.map(item => `
+                        <tr>
+                            <td>${item[0]}</td>
+                            <td>${item[1]}</td>
+                            <td>${item[2]}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+    `;
 
-        // cria um blob com o conteúdo HTML
-        var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    let estilo = "<style>";
+    estilo += "table {width: 100%;font: 25px Calibri;}";
+    estilo += "table, th, td {border: solid 2px #888; border-collapse: collapse;";
+    estilo += "padding: 4px 8px;text-align: center;}";
+    estilo += "</style>";
 
-        // cria uma URL temporária para o blob
-        var url = URL.createObjectURL(blob);
+    const win = window.open('', '', 'height=700,width=700');
 
-        // cria um link para o download do arquivo
-        var link = document.createElement('a');
-        link.href = url;
-        link.download = 'roteiro.html';
-        link.click();
+    win.document.write('<html><head>');
+    win.document.write('<title>ROTEIRO</title>');
+    win.document.write(estilo);
+    win.document.write('</head><body>');
+    win.document.write(conteudo);
+    win.document.write('</body></html>');
 
-        // libera a URL temporária
-        URL.revokeObjectURL(url);
-    }
+    win.print();
+}
 
-    // evento de clique do botão para salvar como HTML
-    $('#salvarHTML').click(function() {
-        salvarHTML();
-    });
   </script>
 {% endblock %}

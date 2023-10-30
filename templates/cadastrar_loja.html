@@ -1,106 +1,217 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Cadastro de Lojas</h1>
 
-{% with mensagens = get_flashed_messages() %}
-{% if mensagens %}
-<div class="alert alert-success" role="alert">
-  {% for mensagem in mensagens %}
-  {{ mensagem }}
-  {% endfor %}
-</div>
-{% endif %}
-{% endwith %}
+<body id="checkout-page">
 
-<form method="POST" action="/lojas/cadastrar" enctype="multipart/form-data" style="margin-bottom: 50px">
-  <div class="form-group">
-    {{ form.csrf_token }}
-    {{ form.nome_loja.label(class_='form-label') }}
-    <span class="text-danger">*</span>
-    {{ form.nome_loja(class_='form-control', placeholder='Digite o nome da loja', required='required', maxlength=100) }}
-    <span class="counter"></span>
-  </div>
+    <div id="order-form-container" class="container p-6 my-md-4 px-md-0">
+        <div id="form-header">
+            <h1>Cadastro da loja</h1>
+            <br>
 
-  <div class="form-group">
-    {{ form.cep.label(class_='form-label') }}
-    <span class="text-danger">*</span>
-    {{ form.cep(class_='form-control', placeholder='Digite o CEP da loja', required='required', maxlength=9) }}
-    <span class="counter"></span>
-    {% if form.cep.errors %}
-    <div class="invalid-feedback">
-        {% for error in form.cep.errors %}
-        <span>{{ error }}</span>
-        {% endfor %}
+            <form id="store-form" action="/cadastrar_loja" method="post">
+                <h4>Nome do Estabelecimento</h4>
+                <div class="row mb-3">
+                    <div class="form-floating">
+                        <input
+                            type="text"
+                            class="form-control shadow-none"
+                            id="nome_loja"
+                            name="nome_loja"
+                            placeholder="Digite o nome da Loja"
+                            maxlength="40"
+                            required
+                        />
+                        <label for="nome_loja">Nome da Loja</label>
+                    </div>
+                </div>
+
+                <h4>Cadastre o endereço da Loja - Busca pelo CEP</h4>
+                <div class="row mb-3">
+                    <div class="form-floating">
+                        <input
+                            type="text"
+                            class="form-control shadow-none"
+                            id="cep"
+                            name="cep"
+                            placeholder="Digite o CEP para visitação"
+                            maxlength="8"
+                            minlength="8"
+                            required
+                        />
+                        <label for="cep">Digite o CEP</label>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-12 col-sm-6 mb-3 mb-md-0 form-floating">
+                        <input
+                            type="text"
+                            class="form-control shadow-none"
+                            id="rua"
+                            name="rua"
+                            placeholder="rua"
+                            required
+                        />
+                        <label for="rua">Rua</label>
+                    </div>
+                    <div class="col-12 col-sm-6 form-floating">
+                        <input
+                            type="number"
+                            class="form-control shadow-none"
+                            id="numero"
+                            name="numero"
+                            placeholder="Digite o número"
+                            required
+                        />
+                        <label for="numero">Digite o número</label>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-12 col-sm-6 mb-3 mb-md-0 form-floating">
+                        <input
+                            type="text"
+                            class="form-control shadow-none"
+                            id="complemento"
+                            name="complemento"
+                            placeholder="Digite o complemento"
+                        />
+                        <label for="complemento">Digite o complemento</label>
+                    </div>
+                    <div class="col-12 col-sm-6 form-floating">
+                        <input
+                            type="text"
+                            class="form-control shadow-none"
+                            id="bairro"
+                            name="bairro"
+                            placeholder="Bairro"
+                            required
+                        />
+                        <label for="bairro">Bairro</label>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end">
+                    <form onsubmit="return confirm('Cadastro Realizado com sucesso')">
+                        <button type="submit" class="btn btn-danger">Cadastrar</button>
+                    </form>
+                </div>
+            </form>
+        </div>
     </div>
-    {% endif %}
-  </div>
+</body>
 
-  <div class="form-group">
-    {{ form.rua.label(class_='form-label') }}
-    <span class="text-danger">*</span>
-    {{ form.rua(id='rua', class_='form-control', placeholder='Digite o nome da rua da loja', required='required', maxlength=100) }}
-    <span class="counter"></span>
-  </div>
 
-  <div class="form-group">
-    {{ form.complemento.label(class_='form-label') }}
-    <span class="text-danger">*</span>
-    {{ form.complemento(class_='form-control', placeholder='Digite o complemento do endereço da loja', maxlength=75) }}
-    <span class="counter"></span>
-  </div>
+  {% block scripts %}
+    <script>
+      const cepInput = document.querySelector("#cep");
+      const addressInput = document.querySelector("#endereco");
+      const neighborhoodInput = document.querySelector("#bairro");
+      const rua = document.querySelector("#rua");
+      const formInputs = document.querySelectorAll("[data-input]");
 
-  <div class="form-group">
-    {{ form.numero.label(class_='form-label') }}
-    <span class="text-danger">*</span>
-    {{ form.numero(class_='form-control', placeholder='Digite o número do endereço da loja', required='required') }}
-  </div>
 
-  <div class="form-group">
-    {{ form.observacao.label(class_='form-label') }}
-    {{ form.observacao(class_='form-control', placeholder='Digite uma observação sobre a loja', maxlength=250) }}
-    <span class="counter"></span>
-  </div>
+        // Validate CEP Input
+        cepInput.addEventListener("keypress", (e) => {
+        const onlyNumbers = /[0-9]|\./;
+        const key = String.fromCharCode(e.keyCode);
 
-  <div class="form-group">
-    {{ form.bairro.label(class_='form-label') }}
-    <span class="text-danger">*</span>
-    {{ form.bairro(id='bairro', class_='form-control', placeholder='Digite o bairro da loja', required='required', maxlength=100) }}
-    <span class="counter"></span>
-  </div>
+        // allow only numbers
+        if (!onlyNumbers.test(key)) {
+            e.preventDefault();
+            return;
+        }
+        });
 
-  <div class="form-group">
-    {{ form.horario_funcionamento.label(class_='form-label') }}
-    <span class="text-danger">*</span>
-    {{ form.horario_funcionamento(class_='form-control', placeholder='Digite o horário de funcionamento da loja', maxlength=150, required='required') }}
-    <span class="counter"></span>
-  </div>
+        // Evento to get address
+        cepInput.addEventListener("keyup", (e) => {
+        const inputValue = e.target.value;
 
-  <div class="form-group">
-    {{ form.pontos_interesse.label(class_='form-label') }}
-    <span class="text-danger">*</span>
-    {{ form.pontos_interesse(class_='form-control', placeholder='Digite os pontos de interesse próximos da loja', maxlength=250, required='required') }}
-    <span class="counter"></span>
-  </div>
+        //   Check if we have a CEP
+        if (inputValue.length === 8) {
+            getAddress(inputValue);
+        }
+        });
 
-  <div class="form-group">
-    {{ form.resumo_estabelecimento.label(class_='form-label') }}
-    {{ form.resumo_estabelecimento(class_='form-control', placeholder='Digite um resumo sobre o estabelecimento da loja', maxlength=500) }}
-    <span class="counter"></span>
-  </div>
+        // Get address from API
+        const getAddress = async (cep) => {
+        toggleLoader();
 
-  <div class="form-group">
-    {{ form.link_site_rede_social.label(class_='form-label') }}
-    {{ form.link_site_rede_social(class_='form-control', placeholder='Digite o link do site ou rede social da loja', maxlength=150) }}
-    <span class="counter"></span>
-  </div>
+        cepInput.blur();
 
-  <div class="form-group">
-    {{ form.imagem.label(class_='form-label', maxlength=150) }}
-    <span class="counter"></span>
-    {{ form.imagem(class_='form-control') }}
-  </div>
+        const apiUrl = `https://viacep.com.br/ws/${cep}/json/`;
 
-  <button type="submit" class="btn btn-primary">Cadastrar</button>
-</form>
+        const response = await fetch(apiUrl);
+
+        const data = await response.json();
+
+        // Show error and reset form
+        if (data.erro === true) {
+            if (!addressInput.hasAttribute("disabled")) {
+            toggleDisabled();
+            }
+
+            addressForm.reset();
+            toggleLoader();
+            toggleMessage("CEP Inválido, tente novamente.");
+            return;
+        }
+
+        if (addressInput.value === "") {
+            toggleDisabled();
+        }
+
+        toggleLoader();
+        };
+
+
+        // Close message modal
+        closeButton.addEventListener("click", () => toggleMessage());
+
+        // Save address
+        addressForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+
+        toggleLoader();
+
+        setTimeout(() => {
+            toggleLoader();
+
+            toggleMessage("Endereço salvo com sucesso!");
+
+            addressForm.reset();
+
+            toggleDisabled();
+        }, 1000);
+        });
+
+      // Correção do Event Listener do Botão "Cadastrar"
+      const saveButton = document.querySelector("#save-btn");
+
+      saveButton.addEventListener("click", () => {
+        const formData = new FormData(document.querySelector("#store-form"));
+
+        const data = {};
+        formData.forEach((value, key) => {
+          data[key] = value;
+        });
+
+        fetch("/cadastrar_loja", {
+          method: "POST",
+          body: JSON.stringify(data),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        })
+        .then((response) => response.json())
+        .then((data) => {
+          console.log("Sucesso:", data);
+        })
+        .catch((error) => {
+          console.error("Erro:", error);
+        });
+      });
+    </script>
+  {% endblock %}
 {% endblock %}

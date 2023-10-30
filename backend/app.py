@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from fastapi import Depends, FastAPI, Form, HTTPException, Request
+from fastapi import Depends, FastAPI, Form, HTTPException, Request, Response
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import select
@@ -10,11 +10,17 @@ from starlette.templating import Jinja2Templates
 from . import models
 from .conexao import get_session
 from .models import Loja, Usuario
-from .schemas import CadastrarLoja, ConsultaLojas, UsuarioSchema, UsuarioPublico
+from .schemas import (
+    CadastrarLoja,
+    ConsultaLojas,
+    UsuarioPublico,
+    UsuarioSchema,
+)
 
 app = FastAPI()
 templates = Jinja2Templates(directory='templates')
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount('/static', StaticFiles(directory='static'), name='static')
+
 
 @app.get('/', response_class=HTMLResponse)
 async def index(request: Request):
@@ -24,7 +30,7 @@ async def index(request: Request):
     )
 
 
-@app.get('/lojas', response_model=ConsultaLojas)
+@app.get('/lojas')
 async def consultar_lojas(
     request: Request,
     session: Session = Depends(get_session),
@@ -33,13 +39,90 @@ async def consultar_lojas(
     now = datetime.now()
     return templates.TemplateResponse(
         'lojas.html',
-        {'request': request, 'active': 'lojas', 'now': now, 'lojas': lojas},
+        {'request': request, 'now': now, 'lojas': lojas},
     )
 
 
-@app.get('/entrar', response_class=HTMLResponse)
-async def login(request: Request):
+@app.get('/cadastrar_loja', response_class=HTMLResponse)
+async def render_loja(request: Request):
     now = datetime.now()
+    return templates.TemplateResponse(
+        'cadastrar_loja.html',
+        {
+            'request': request,
+            'active': 'cadastrar_loja',
+            'now': now,
+        },
+    )
+
+
+@app.post('/cadastrar_loja')
+async def cadastrar_loja(
+    session: Session = Depends(get_session),
+    nome_loja: str = Form(...),
+    cep: str = Form(...),
+    rua: str = Form(...),
+    numero: int = Form(...),
+    complemento: str = Form(...),
+    bairro: str = Form(...),
+):
+    try:
+        loja = Loja(
+            nome_loja=nome_loja,
+            cep=cep,
+            rua=rua,
+            numero=numero,
+            complemento=complemento,
+            bairro=bairro,
+        )
+        session.add(loja)
+        session.commit()
+        session.refresh(loja)
+        return RedirectResponse(url='/lojas', status_code=303)
+    except Exception as e:
+        return {'error': str(e)}
+
+
+@app.get('/roteiro', response_class=HTMLResponse)
+async def roteiro(request: Request, session: Session = Depends(get_session)):
+    now = datetime.now()
+    lojas = session.query(Loja).all()
+    return templates.TemplateResponse(
+        'roteiro.html',
+        {'request': request, 'active': 'roteiro', 'now': now, 'lojas': lojas},
+    )
+
+
+@app.post('/lojas/excluir_loja/{id}')
+async def excluir_loja(id: int, session: Session = Depends(get_session)):
+    """Remove uma loja do banco de dados."""
+    try:
+        loja = session.query(Loja).filter(Loja.id == id).first()
+        if loja is not None:
+            session.delete(loja)
+            session.commit()
+        else:
+            raise HTTPException(status_code=404, detail='Loja não encontrada')
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get('/entrar', response_class=HTMLResponse)
+async def login(request: Request,
+    email: str = Form(...),
+    senha: str = Form(...),
+    session: Session = Depends(get_session),
+):
+    now = datetime.now()
+    usuario = session.query(Usuario).filter(Usuario.email == email, Usuario.senha == senha).first()
+
+    if usuario is not None:
+        return templates.TemplateResponse(
+            'index.html', {'request': request, 'usuario': usuario}
+        )
+    else:
+
+        raise HTTPException(status_code=400, detail="Credenciais inválidas")
 
     return templates.TemplateResponse(
         'entrar.html', {'request': request, 'active': 'entrar', 'now': now}
@@ -55,91 +138,21 @@ async def cadastrar(request: Request):
     )
 
 
-@app.get('/lojas/cadastrar_loja', response_class=HTMLResponse)
-async def cadastrar_loja(
-    request: Request,
-    session: Session = Depends(get_session),
-    nome_loja: str = Form(...),
-    cep: str = Form(...),
-    endereco: str = Form(...),
-    numero: int = Form(...),
-    complemento: str = Form(...),
-    bairro: str = Form(...),
-    cidade: str = Form(...),
-    telefone: str = Form(...),
-    horario_funcionamento: str = Form(...),
-    descricao: str = Form(...),
-    imagem: str = Form(...),
+# Método para criar usuário
+@app.post('/cadastrar_usuario')
+async def testecriaruser(session: Session = Depends(get_session),
+    nome: str = Form(...),
+    email: str = Form(...),
+    senha: str = Form(...),
 ):
-    now = datetime.now()
-
-    validar_loja = (
-        session.query(CadastrarLoja)
-        .filter(CadastrarLoja.nome_loja == nome_loja)
-        .first()
-    )
-
-    if validar_loja:
-        raise HTTPException(
-            status_code=400, detail='Loja já cadastrada no sistema.'
+    try:
+        novo_usuario = Usuario(
+            nome = nome,
+            email = email,
+            senha = senha
         )
-    else:
-        loja = CadastrarLoja(
-            nome_loja=nome_loja,
-            cep=cep,
-            endereco=endereco,
-            numero=numero,
-            complemento=complemento,
-            bairro=bairro,
-            cidade=cidade,
-            telefone=telefone,
-            horario_funcionamento=horario_funcionamento,
-            descricao=descricao,
-            imagem=imagem,
-        )
-        session.add(loja)
+        session.add(novo_usuario)
         session.commit()
-
-    return templates.TemplateResponse(
-            'cadastrar_loja.html',
-            {
-                'request': request,
-                'active': 'cadastrar_loja',
-                'now': now,
-                'form': Form,
-            },
-        )
-
-
-@app.post('/lojas/{id}', response_class=HTMLResponse)
-async def alterar_dados_loja(
-    request: Request,
-    id: int,
-    session: Session = Depends(get_session),
-):
-    now = datetime.now()
-    loja = session.scalar(
-        select(CadastrarLoja).where(CadastrarLoja.id == id)
-    ).first()
-
-
-@app.get('/roteiro', response_class=HTMLResponse)
-async def roteiro(request: Request):
-    now = datetime.now()
-    return templates.TemplateResponse(
-        'roteiro.html', {'request': request, 'active': 'roteiro', 'now': now}
-    )
-
-
-# Inserir deletar_loja
-
-
-
-# Método para criar usuário 
-@app.post('/testecriaruser', response_model= UsuarioPublico)
-async def testecriaruser(request: UsuarioSchema, db: Session = Depends(get_session)):
-    novo_usuario = models.Usuario(nome = request.usuario, email = request.email, senha = request.senha)
-    db.add(novo_usuario)
-    db.commit()
-    db.refresh(novo_usuario)
-    return novo_usuario
+        return RedirectResponse(url='/entrar', status_code=303)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

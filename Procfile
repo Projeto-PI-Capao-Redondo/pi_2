@@ -1,1 +1,1 @@
-web: uvicorn backend.app:app --port 3001
+web: gunicorn -w -4 -k uvicorn.workers.UvicornWorker backend.app:app

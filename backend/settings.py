@@ -1,4 +1,11 @@
+import os
+
+from dotenv import load_dotenv
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+load_dotenv()
+
+DATABASE_URL_HEROKU = os.getenv('DATABASE_URL_HEROKU')
 
 
 class Settings(BaseSettings):
@@ -6,4 +13,4 @@ class Settings(BaseSettings):
         env_file='.env', env_file_encoding='utf-8'
     )
 
-    connection_string: str
+    DATABASE_URL_HEROKU: str

@@ -6,13 +6,9 @@ from sqlalchemy.orm import Session, sessionmaker
 
 load_dotenv()
 
-HOST = os.getenv('HOST')
-SENHA = os.getenv('SENHA')
-BANCO = os.getenv('BANCO')
+DATABASE_URL_HEROKU = os.getenv('DATABASE_URL_HEROKU')
 
-string_conexao = f"{BANCO}:{HOST}/{SENHA}"
-
-engine = create_engine(string_conexao)
+engine = create_engine(DATABASE_URL_HEROKU)
 
 def get_session() -> Session:
     session = sessionmaker(bind=engine)

@@ -10,6 +10,7 @@ DATABASE_URL_HEROKU = os.getenv('DATABASE_URL_HEROKU')
 
 engine = create_engine(DATABASE_URL_HEROKU)
 
+
 def get_session() -> Session:
     session = sessionmaker(bind=engine)
     return session()

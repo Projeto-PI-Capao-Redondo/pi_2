@@ -27,19 +27,21 @@
                 </div>
 
                 <h4>Cadastre o endereço da Loja - Busca pelo CEP</h4>
-                <div class="row mb-3">
-                    <div class="form-floating">
-                        <input
-                            type="text"
-                            class="form-control shadow-none"
-                            id="cep"
-                            name="cep"
-                            placeholder="Digite o CEP para visitação"
-                            maxlength="8"
-                            minlength="8"
-                            required
-                        />
-                        <label for="cep">Digite o CEP</label>
+                <div class="row mb-3 align-items-end"> 
+                    <div class="col">
+                        <div class="form-floating">
+                            <input
+                                type="text"
+                                class="form-control shadow-none"
+                                id="cep"
+                                name="cep"
+                                placeholder="Digite o CEP para visitação"
+                                maxlength="8"
+                                minlength="8"
+                                required
+                            />
+                            <label for="cep">CEP</label>
+                        </div>
                     </div>
                 </div>
 
@@ -76,6 +78,7 @@
                             id="complemento"
                             name="complemento"
                             placeholder="Digite o complemento"
+                            required
                         />
                         <label for="complemento">Digite o complemento</label>
                     </div>
@@ -92,6 +95,35 @@
                     </div>
                 </div>
 
+                <div class="row mb-3">
+                    <div class="col-12 form-floating">
+                        <textarea
+                            class="form-control shadow-none"
+                            id="observacao"
+                            name="observacao"
+                            placeholder="Digite sua observação aqui"
+                            style="height: 100px;"
+                            required
+                        ></textarea>
+                        <label for="observacao">Observação</label>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-12 form-floating">
+                        <input
+                            type="text"
+                            class="form-control shadow-none"
+                            id="horario_funcionamento"
+                            name="horario_funcionamento"
+                            placeholder="Horário de Funcionamento"
+                            required
+                        />
+                        <label for="horario_funcionamento">Horário de Funcionamento</label>
+                    </div>
+                </div>
+
+
                 <div class="d-flex justify-content-end">
                     <form onsubmit="return confirm('Cadastro Realizado com sucesso')">
                         <button type="submit" class="btn btn-danger">Cadastrar</button>
@@ -102,116 +134,62 @@
     </div>
 </body>
 
+{% block scripts %}
+<script>
+// Get address from API
+const getAddress = async (cep) => {
+    const apiUrl = `https://viacep.com.br/ws/${cep}/json/`;
 
-  {% block scripts %}
-    <script>
-      const cepInput = document.querySelector("#cep");
-      const addressInput = document.querySelector("#endereco");
-      const neighborhoodInput = document.querySelector("#bairro");
-      const rua = document.querySelector("#rua");
-      const formInputs = document.querySelectorAll("[data-input]");
+    const response = await fetch(apiUrl);
 
+    const data = await response.json();
 
-        // Validate CEP Input
-        cepInput.addEventListener("keypress", (e) => {
-        const onlyNumbers = /[0-9]|\./;
-        const key = String.fromCharCode(e.keyCode);
+    // Show error and reset form
+    if (data.erro === true) {
+        alert("CEP Inválido, tente novamente.");
+        return;
+    }
 
-        // allow only numbers
-        if (!onlyNumbers.test(key)) {
-            e.preventDefault();
-            return;
-        }
-        });
+    // Update address fields
+    document.getElementById('rua').value = data.logradouro;
+    document.getElementById('bairro').value = data.bairro;
+    document.getElementById('complemento').value = data.complemento;
+};
 
-        // Evento to get address
-        cepInput.addEventListener("keyup", (e) => {
-        const inputValue = e.target.value;
+// Adicionado evento input para chamar a função getAddress quando o usuário digitar algo no campo CEP
+document.getElementById('cep').addEventListener('input', (event) => {
+    const cep = event.target.value;
+    if (cep.length === 8) {
+        getAddress(cep);
+    }
+});
 
-        //   Check if we have a CEP
-        if (inputValue.length === 8) {
-            getAddress(inputValue);
-        }
-        });
+const saveButton = document.querySelector("#save-btn");
 
-        // Get address from API
-        const getAddress = async (cep) => {
-        toggleLoader();
+saveButton.addEventListener("click", () => {
+    const formData = new FormData(document.querySelector("#store-form"));
 
-        cepInput.blur();
+    const data = {};
+    formData.forEach((value, key) => {
+        data[key] = value;
+    });
 
-        const apiUrl = `https://viacep.com.br/ws/${cep}/json/`;
-
-        const response = await fetch(apiUrl);
-
-        const data = await response.json();
-
-        // Show error and reset form
-        if (data.erro === true) {
-            if (!addressInput.hasAttribute("disabled")) {
-            toggleDisabled();
-            }
-
-            addressForm.reset();
-            toggleLoader();
-            toggleMessage("CEP Inválido, tente novamente.");
-            return;
-        }
-
-        if (addressInput.value === "") {
-            toggleDisabled();
-        }
-
-        toggleLoader();
-        };
-
-
-        // Close message modal
-        closeButton.addEventListener("click", () => toggleMessage());
-
-        // Save address
-        addressForm.addEventListener("submit", (e) => {
-        e.preventDefault();
-
-        toggleLoader();
-
-        setTimeout(() => {
-            toggleLoader();
-
-            toggleMessage("Endereço salvo com sucesso!");
-
-            addressForm.reset();
-
-            toggleDisabled();
-        }, 1000);
-        });
-
-      // Correção do Event Listener do Botão "Cadastrar"
-      const saveButton = document.querySelector("#save-btn");
-
-      saveButton.addEventListener("click", () => {
-        const formData = new FormData(document.querySelector("#store-form"));
-
-        const data = {};
-        formData.forEach((value, key) => {
-          data[key] = value;
-        });
-
-        fetch("/cadastrar_loja", {
-          method: "POST",
-          body: JSON.stringify(data),
-          headers: {
+    fetch("/cadastrar_loja", {
+        method: "POST",
+        body: JSON.stringify(data),
+        headers: {
             "Content-Type": "application/json",
-          },
-        })
-        .then((response) => response.json())
-        .then((data) => {
-          console.log("Sucesso:", data);
-        })
-        .catch((error) => {
-          console.error("Erro:", error);
-        });
-      });
-    </script>
-  {% endblock %}
+        },
+    })
+    .then((response) => response.json())
+    .then((data) => {
+        console.log("Sucesso:", data);
+    })
+    .catch((error) => {
+        console.error("Erro:", error);
+    });
+});
+
+</script>
+{% endblock %}
 {% endblock %}

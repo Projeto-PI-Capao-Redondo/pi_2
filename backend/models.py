@@ -14,7 +14,7 @@ class Loja(Base):
     nome_loja: Mapped[str]
     cep: Mapped[str] = mapped_column('cep', nullable=False)
     rua: Mapped[str]
-    complemento: Mapped[str]
+    complemento: Mapped[str] = mapped_column(nullable=True)
     numero: Mapped[int]
     observacao: Mapped[str] = mapped_column(nullable=True)
     bairro: Mapped[str]

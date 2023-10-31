@@ -1,1 +1,1 @@
-web: uvicorn backend.app:app --port 80
+web: uvicorn backend.app:app --port 3001

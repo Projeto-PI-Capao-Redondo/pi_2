@@ -6,7 +6,11 @@ from sqlalchemy.orm import Session, sessionmaker
 
 load_dotenv()
 
-string_conexao = str(os.getenv('DATABASE_URL_HEROKU'))
+HOST = os.getenv('HOST')
+SENHA = os.getenv('SENHA')
+BANCO = os.getenv('BANCO')
+
+string_conexao = f"{BANCO}:{HOST}/{SENHA}"
 
 engine = create_engine(string_conexao)
 
